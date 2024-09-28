@@ -5,7 +5,6 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from ..serializers import OrderSerializer
 from ..models import Cart, Order, OrderItem
-from ..globals import *
 from ..permissions import IsCustomerOrGET, SingleOrderPermissions
 from rest_framework.exceptions import ValidationError
 from ..helpers import get_filtered_items, get_paginated_items
@@ -15,9 +14,9 @@ def get_role_orders(user):
     user_groups = user.groups.all()
     if not user_groups: # Customer
         return Order.objects.filter(user=user)
-    elif user_groups.filter(id=ROLESLUG_ROLE['manager']): # Manager
+    elif user_groups.filter(id='Manager'): # Manager
         return Order.objects.all()
-    elif user_groups.filter(id=ROLESLUG_ROLE['delivery-crew']): # Delivery-crew
+    elif user_groups.filter(id='Delivery-crew'): # Delivery-crew
         return Order.objects.filter(delivery_crew=user)
     else:
         return None
@@ -31,7 +30,7 @@ def update_status(order, status_code):
      
 def update_delivery_crew(order, delivery_crew_id):
     delivery_crew = User.objects \
-        .filter(pk=delivery_crew_id, groups__id=ROLESLUG_ROLE['delivery-crew']) \
+        .filter(pk=delivery_crew_id, groups__id='Delivery-crew') \
         .first()
     if delivery_crew_id and not delivery_crew:
         raise ValidationError('Invalid user id for the delivery crew')

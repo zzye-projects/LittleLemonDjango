@@ -4,19 +4,18 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User, Group
 from ..serializers import UserSerializer
-from ..globals import *
 from ..permissions import IsManagerAdminOr403
 
 class UsersView(APIView):
     permission_classes = [IsManagerAdminOr403]
     
     def get(self, request, role):
-        users = User.objects.filter(groups__id=ROLESLUG_ROLE[role])
+        users = User.objects.filter(groups__name=role)
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)    
     
     def post(self, request, role):
-        group = get_object_or_404(Group, id=ROLESLUG_ROLE[role])
+        group = get_object_or_404(Group, name=role)
         username = request.data.get('username')
         user = get_object_or_404(User, username=username)
         user.groups.set([group])

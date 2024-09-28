@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from ..serializers import CartSerializer
 from ..models import MenuItem, Cart
-from ..globals import *
 from ..permissions import IsCustomerOr403
 
 class CartView(APIView):

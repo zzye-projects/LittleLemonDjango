@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from ..serializers import MenuItemSerializer
 from ..models import MenuItem, Category
-from ..globals import *
 from ..permissions import IsManagerAdminOrGET
 from ..helpers import get_filtered_items, get_paginated_items
 from django.core.paginator import EmptyPage
