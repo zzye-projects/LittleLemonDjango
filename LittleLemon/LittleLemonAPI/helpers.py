@@ -1,4 +1,6 @@
 from django.core.paginator import Paginator
+from rest_framework.pagination import PageNumberPagination
+
 
 def get_filtered_items(items, request, filter_params):
     for param, filter_param in filter_params.items():
@@ -14,3 +16,7 @@ def get_paginated_items(items, request):
     paginator = Paginator(items, per_page=perpage)
     items = paginator.page(number=page)
     return items
+
+class CustomPageSize(PageNumberPagination):
+    page_size_query_param = 'page_size'
+    max_page_size = 100

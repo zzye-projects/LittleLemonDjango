@@ -7,10 +7,10 @@ class IsManagerAdminOrGET(BasePermission):
         user = request.user
         if not user.is_authenticated:
             raise PermissionDenied(detail='Only authenticated users can perform this action')
-        elif request.method == 'GET' or user.is_staff or \
+        elif request.method == 'GET' or user.is_superuser or \
             user.groups.filter(id=ROLESLUG_ROLE['manager']).exists():
             return True
-        raise PermissionDenied(detail='Only managers and admin staff can perform this action')
+        raise PermissionDenied(detail='Only managers and superusers can perform this action')
 
 class IsManagerAdminOr403(BasePermission):
     def has_permission(self, request, view):
