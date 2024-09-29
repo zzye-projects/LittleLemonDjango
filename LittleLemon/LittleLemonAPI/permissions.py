@@ -1,11 +1,11 @@
 from rest_framework.permissions import BasePermission
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 
 class IsManagerAdminOrGET(BasePermission):
     def has_permission(self, request, view):
         user = request.user
         if not user.is_authenticated:
-            raise PermissionDenied(detail='Only authenticated users can perform this action')
+            raise AuthenticationFailed(detail='Only authenticated users can perform this action')
         elif request.method == 'GET' or user.is_superuser or \
             user.groups.filter(name='Manager').exists():
             return True

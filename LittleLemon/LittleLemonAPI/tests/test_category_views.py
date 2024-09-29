@@ -31,6 +31,10 @@ class CategoryTestCase(APITestCase):
             slug = 'category2',
             title = 'Category2'
         )
+    
+    def test_auth_list_category(self):
+        response = self.client.get(reverse('category-list'))
+        self.assertEqual(response.status_code, 401)
 
     def test_list_category(self):
         self.client.login(
@@ -40,6 +44,7 @@ class CategoryTestCase(APITestCase):
 
         serializer = CategorySerializer(Category.objects.all(), many=True)
         response = self.client.get(reverse('category-list'))
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['results'], serializer.data)
 
@@ -51,9 +56,26 @@ class CategoryTestCase(APITestCase):
 
         serializer = CategorySerializer(self.category1)
         response = self.client.get(reverse('category-detail', kwargs={'pk': self.category1.pk}))
+        
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, serializer.data)
     
+    def test_auth_post_category(self):
+        self.client.login(
+            username='CustomerUser', 
+            password='CustomerUser@123!'
+        )
+        payload = {
+            'slug': 'category3',
+            'title': 'Category3'
+        }
+        response = self.client.post(
+            reverse('category-list'), 
+            data=payload, 
+            format='json'
+        )
+        self.assertEqual(response.status_code, 403)
+
     def test_post_category(self):
         self.client.login(
             username='ManagerUser', 
@@ -64,27 +86,87 @@ class CategoryTestCase(APITestCase):
             'title': 'Category3'
         }
 
-        response = self.client.post(reverse('category-list'), data=payload)
-        serializer = CategorySerializer(get_object_or_404(Category, title='Category3'))
+        response = self.client.post(
+            reverse('category-list'), 
+            data=payload, 
+            format='json'
+        )
+        category = get_object_or_404(Category, title='Category3')
+        
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data, serializer.data)
+        self.assertEqual(category.slug, 'category3')
+        self.assertEqual(category.title, 'Category3')
         self.assertEqual(len(Category.objects.all()), 3)
 
     def test_filter_category(self):
-        pass
+        self.client.login(
+            username='CustomerUser', 
+            password='CustomerUser@123!'
+        )
+
+        serializer = CategorySerializer(self.category1)
+        response = self.client.get(reverse('category-list'), {'title__icontains':'1'})
+       
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0], serializer.data)
 
     def test_order_category(self):
-        pass
+        self.client.login(
+            username='CustomerUser', 
+            password='CustomerUser@123!'
+        )
+        
+        serializer1 = CategorySerializer(self.category1)
+        serializer2 = CategorySerializer(self.category2)
+
+        response = self.client.get(reverse('category-list'), {'ordering':'-slug'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['results'][0], serializer2.data)
+        self.assertEqual(response.data['results'][1], serializer1.data)
 
     def test_paginate_category(self):
-        pass
+        self.client.login(
+            username='CustomerUser', 
+            password='CustomerUser@123!'
+        )
+
+        serializer = CategorySerializer(self.category2)
+        response = self.client.get(reverse('category-list'), {'page_size':'1', 'page': 2})
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0], serializer.data)
 
     def test_put_category(self):
-        pass
+        self.client.login(
+            username='ManagerUser', 
+            password='ManagerUser@123!'
+        )
+        payload = {
+            'slug' : 'category11',
+            'title' : 'Category11'
+        }
+        response = self.client.put(
+            reverse('category-detail',
+            kwargs={'pk': self.category1.pk}), 
+            data=payload, format='json'
+        )
+        category = get_object_or_404(Category, pk=self.category1.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(category.title, 'Category11')
+        self.assertEqual(category.slug, 'category11')
+        self.assertEqual(len(Category.objects.all()), 2)
 
     def test_delete_category(self):
-        pass
-
-        # self.client.login(username='testuser', password='password')
-        # response = self.client.get('/api/secure-endpoint/')
-        # self.assertEqual(response.status_code, 200)
+        self.client.login(
+            username='ManagerUser', 
+            password='ManagerUser@123!'
+        )
+        response = self.client.delete(
+            reverse('category-detail',
+            kwargs={'pk': self.category1.pk})
+        )
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(len(Category.objects.all()), 1)
+        self.assertEqual(len(Category.objects.filter(pk=self.category1.pk)), 0)
