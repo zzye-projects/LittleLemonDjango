@@ -13,10 +13,8 @@ router.register(r'menu-item', MenuViewSet, basename='menuitem')
 
 urlpatterns = [
     path('', include(router.urls)),
-    # path('menu-items', MenuItemsView.as_view()),
-    # path('menu-items/<int:pk>', SingleMenuItemView.as_view()),
-    path('groups/<str:role>/users', UsersView.as_view()),
-    path('groups/<str:role>/users/<int:pk>', SingleUserView.as_view()),
+    path('groups/<str:role>/users', UsersView.as_view(), name='group-list'),
+    path('groups/<str:role>/users/<int:pk>', SingleUserView.as_view(), name='group-detail'),
     path('cart/menu-items', CartView.as_view()),
     path('orders', OrderView.as_view()),
     path('orders/<int:pk>', SingleOrderView.as_view()),

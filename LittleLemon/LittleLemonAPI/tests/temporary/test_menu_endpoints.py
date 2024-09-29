@@ -40,7 +40,6 @@ class MenuTestCase(APITestCase):
         )
     
     def test_auth_list_menu(self):
-        print(reverse('menuitem-list'))
         response = self.client.get(reverse('menuitem-list'))
         self.assertEqual(response.status_code, 401)
 
