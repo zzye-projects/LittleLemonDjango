@@ -44,12 +44,11 @@ Get is available to any authenticated user. The other methods are only available
 * Put: Replaces category. Required payload field(s): slug, title
 * Patch: Updates category. Optional payload field(s): slug, title
 
-### MenuItem Endpoints
+### Menu Item Endpoints
 Get is available to any authenticated user. The other methods are only available to authenticated superusers/admin
 #### /api/menu-item
 * Get: Gets list of all menu items
-* Post: Adds new menu item. Required payload field(s): 
-** title, price, featured (bool), category_id
+* Post: Adds new menu item. Required payload field(s): title, price, featured (bool), category_id
 #### /api/menu-item{categoryId}
 * Delete: Removes category
 * Put: Replaces category. Required payload field(s): title, price, featured (bool), category_id
