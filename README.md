@@ -32,8 +32,7 @@ Only available to authenticated superusers/admin.
 Only available to authenticated superusers/admin/managers.
 * Get: Gets list of all delivery crew users.
 * Post: Adds user to delivery crew group. Required payload field(s): username.
-#### /api/groups/manager/users/{userId}
-* Auth: Only available to authenticated superusers/admin/managers.
+#### /api/groups/delivery-crew/users/{userId}
 * Delete: Removes user from the delivery crew group.
 
 ### Category Endpoints
