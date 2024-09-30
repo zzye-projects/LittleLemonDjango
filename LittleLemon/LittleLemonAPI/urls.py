@@ -15,7 +15,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('groups/<str:role>/users', UsersView.as_view(), name='group-list'),
     path('groups/<str:role>/users/<int:pk>', SingleUserView.as_view(), name='group-detail'),
-    path('cart/menu-items', CartView.as_view()),
+    path('cart/menu-items', CartView.as_view(), name='cart'),
     path('orders', OrderView.as_view()),
     path('orders/<int:pk>', SingleOrderView.as_view()),
 ]

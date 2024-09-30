@@ -28,12 +28,15 @@ class MenuItemSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'price', 'featured', 'category', 'category_id']
 
 class CartSerializer(serializers.ModelSerializer):
-    user_id = serializers.IntegerField(source='user.id')
-    menuitem_id = serializers.IntegerField(source='menuitem.id')
+    user = serializers.IntegerField(source='user.id', read_only=True)
+    menuitem = serializers.IntegerField(source='menuitem.id', read_only=True)
+
+    user_id = serializers.IntegerField(write_only=True)
+    menuitem_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Cart
-        fields = ['user_id', 'menuitem_id', 'quantity', 'unit_price','price']
+        fields = ['user', 'menuitem', 'quantity', 'unit_price','price', 'user_id', 'menuitem_id']
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:

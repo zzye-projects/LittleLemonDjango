@@ -23,7 +23,8 @@ class IsManagerAdminOr403(BasePermission):
     
 class IsCustomerOr403(BasePermission):
     def has_permission(self, request, view):
-        if not request.user.is_authenticated or request.user.groups.filter(name='Manager').exists() or \
+        if not request.user.is_authenticated or request.user.is_superuser or \
+            request.user.groups.filter(name='Manager').exists() or \
             request.user.groups.filter(name='Delivery Crew').exists():
             raise PermissionDenied(detail='Only customers can perform this action')
         return True

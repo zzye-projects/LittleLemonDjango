@@ -16,28 +16,25 @@ class CartView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
-        menuitem = get_object_or_404(MenuItem, pk=request.data.get('menuitem'))
+        menuitem_id, quantity, cart = request.data.get('menuitem_id'), 1, None
+        menuitem = get_object_or_404(MenuItem, pk=menuitem_id)
         carts = Cart.objects.filter(user__username=request.user, menuitem=menuitem)
-
-        if not carts:
-            cart = Cart.objects.create(
-                user=request.user,
-                menuitem=menuitem,
-                quantity=1,
-                unit_price=menuitem.price,
-                price=menuitem.price
-            )
-        else:
+        
+        if len(carts):
             cart = carts[0]
-            cart.menuitem=menuitem
-            cart.quantity += 1
-            cart.price=menuitem.price*cart.quantity
+            quantity += cart.quantity
+            
+        serializer = CartSerializer(cart, data = {
+            'user_id': request.user.id,
+            'menuitem_id': menuitem_id,
+            'quantity' : quantity
+        })
 
-        cart.save()
-        serializer = CartSerializer(cart)
+        if serializer.is_valid(): serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete(self, request):
         carts = Cart.objects.filter(user__username=request.user)
         carts.delete()
-        return Response({'message': 'Cart emptied for user {}'.format(request.user)}, status=status.HTTP_404_NOT_FOUND)
+        return Response({f'message': 'Cart emptied for user {request.user}'}, 
+                        status=status.HTTP_404_NOT_FOUND)

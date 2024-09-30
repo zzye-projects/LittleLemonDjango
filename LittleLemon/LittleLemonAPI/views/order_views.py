@@ -14,23 +14,21 @@ def get_role_orders(user):
     user_groups = user.groups.all()
     if not user_groups: # Customer
         return Order.objects.filter(user=user)
-    elif user_groups.filter(id='Manager'): # Manager
+    elif user_groups.filter(name='Manager'): # Manager
         return Order.objects.all()
-    elif user_groups.filter(id='Delivery-crew'): # Delivery-crew
+    elif user_groups.filter(name='Delivery Crew'): # Delivery-crew
         return Order.objects.filter(delivery_crew=user)
-    else:
-        return None
+    return None
         
 def update_status(order, status_code):
     if status_code in (0, 1): 
         order.status=status_code
         order.save()
-    else:
-        raise ValidationError('Invalid status code')   
+    raise ValidationError('Invalid status code')   
      
 def update_delivery_crew(order, delivery_crew_id):
     delivery_crew = User.objects \
-        .filter(pk=delivery_crew_id, groups__id='Delivery-crew') \
+        .filter(pk=delivery_crew_id, groups__name='Delivery Crew') \
         .first()
     if delivery_crew_id and not delivery_crew:
         raise ValidationError('Invalid user id for the delivery crew')
@@ -118,8 +116,3 @@ class SingleOrderView(APIView):
         order = Order.objects.filter(pk=pk) 
         order.delete()
         return Response({'message': 'Order deleted'}, status=status.HTTP_200_OK)
-
-
-
-
-

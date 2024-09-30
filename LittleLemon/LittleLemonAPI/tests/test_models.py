@@ -56,7 +56,7 @@ class CartModelTest(TestCase):
         )
         self.menu = MenuItem.objects.create(
             title = 'Dish1',
-            price = 10.00,
+            price = 11.00,
             category = category
         )
         self.user = User.objects.create(
@@ -66,9 +66,7 @@ class CartModelTest(TestCase):
         self.cart = Cart.objects.create(
             user = self.user,
             menuitem = self.menu,
-            quantity = 20,
-            unit_price = 22.00,
-            price = 22.00 * 20
+            quantity = 20
         )
 
     def test_cart_creation(self):
@@ -77,8 +75,8 @@ class CartModelTest(TestCase):
         self.assertEqual(cart.user, self.user)
         self.assertEqual(cart.menuitem, self.menu)
         self.assertEqual(cart.quantity, 20)
-        self.assertEqual(cart.unit_price, 22.00)
-        self.assertEqual(cart.price, 22.00 * 20)
+        self.assertEqual(cart.unit_price, 11.00)
+        self.assertEqual(cart.price, 11.00 * 20)
 
 class OrderModelTest(TestCase):
     def setUp(self):
@@ -90,10 +88,12 @@ class OrderModelTest(TestCase):
             username = 'DeliveryUser',
             password = 'DeliveryUser@123!'
         )
+        self.timezone_date = timezone.now().date()
         self.order = Order.objects.create(
             user = self.customer_user,
             delivery_crew = self.delivery_user,
-            total = 100.00
+            total = 100.00,
+            date = self.timezone_date
         )
     
     def test_order_creation(self):
@@ -101,7 +101,7 @@ class OrderModelTest(TestCase):
         self.assertEqual(order.user, self.customer_user)
         self.assertEqual(order.delivery_crew, self.delivery_user)
         self.assertEqual(order.total, 100.00)
-        self.assertEqual(order.date, timezone.now().date())
+        self.assertEqual(order.date, self.timezone_date)
         self.assertEqual(order.status, 0)
 
 class OrderItemModelTest(TestCase):
@@ -115,7 +115,6 @@ class OrderItemModelTest(TestCase):
             price = 10.00,
             category = category
         )
-        self.timezone_date = timezone.now().date()
         self.customer_user = User.objects.create(
             username = 'CustomerUser',
             password = 'CustomerUser@123!'
@@ -128,7 +127,7 @@ class OrderItemModelTest(TestCase):
             user = self.customer_user,
             delivery_crew = self.delivery_user,
             total = 100.00,
-            date = self.timezone_date
+            date = timezone.now().date()
         )
         self.order_item = OrderItem.objects.create(
             order = self.order,
