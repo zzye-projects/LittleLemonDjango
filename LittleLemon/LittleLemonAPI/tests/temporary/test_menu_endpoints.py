@@ -173,6 +173,27 @@ class MenuTestCase(APITestCase):
         self.assertEqual(menu.category, self.category)
         self.assertEqual(len(MenuItem.objects.all()), 2)
 
+    def test_patch_menu(self):
+        self.client.login(
+            username='ManagerUser', 
+            password='ManagerUser@123!'
+        )
+        payload = {
+            'title' : 'Dish11',
+        }
+        response = self.client.patch(
+            reverse('menuitem-detail',
+            kwargs={'pk': self.menu1.pk}), 
+            data=payload, format='json'
+        )
+        menu = get_object_or_404(MenuItem, pk=self.menu1.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(menu.title, 'Dish11')
+        self.assertEqual(menu.price, 10.00)
+        self.assertEqual(menu.featured, False)
+        self.assertEqual(menu.category, self.category)
+        self.assertEqual(len(MenuItem.objects.all()), 2)
+
     def test_delete_menu(self):
         self.client.login(
             username='ManagerUser', 

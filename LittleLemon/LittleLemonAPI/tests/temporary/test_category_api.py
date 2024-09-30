@@ -158,6 +158,25 @@ class CategoryTestCase(APITestCase):
         self.assertEqual(category.slug, 'category11')
         self.assertEqual(len(Category.objects.all()), 2)
 
+    def test_patch_category(self):
+        self.client.login(
+            username='ManagerUser', 
+            password='ManagerUser@123!'
+        )
+        payload = {
+            'slug' : 'category11',
+        }
+        response = self.client.patch(
+            reverse('category-detail',
+            kwargs={'pk': self.category1.pk}), 
+            data=payload, format='json'
+        )
+        category = get_object_or_404(Category, pk=self.category1.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(category.title, 'Category1')
+        self.assertEqual(category.slug, 'category11')
+        self.assertEqual(len(Category.objects.all()), 2)
+
     def test_delete_category(self):
         self.client.login(
             username='ManagerUser', 
