@@ -15,10 +15,10 @@ class MenuViewSet(viewsets.ModelViewSet):
 
     filterset_fields = {
         'title': ['exact', 'icontains'],
-        'price' : ['exact', 'lte'],
+        'price' : ['lte'],
         'featured': ['exact'],
-        'category_id': ['exact']
+        'category__id': ['exact']
     }
 
-    ordering_fields = ['title', 'price', 'featured', 'category_id']
+    ordering_fields = ['title', 'price', 'featured', 'category__id']
     ordering = ['title']

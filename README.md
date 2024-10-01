@@ -59,6 +59,15 @@ Get is available to any authenticated user. The other methods are only available
 Get is available to any authenticated customer user, NOT belonging to the manager nor the deliver crew group.
 #### /api/cart/menu-item
 * Get: Gets list of menu items within the cart of the user.
-* Post: Adds the menu item to a new/existing cart of the user. Required payload field(s): menuitem. User can call this endpoint multiple times to increase the quantity of this item in the cart.
+* Post: Adds the menu item to a new/existing cart of the user. Required payload field(s): menuitem_id. User can call this endpoint multiple times to increase the quantity of this item in the cart.
 #### /api/cart/menu-item
 * Delete: Clears the cart belonging to the user
+
+### Order Endpoints
+#### /api/orders
+* Get: Gets list of orders. Managers get all orders, and customers and delivery crew only get orders that belong/assigned to them. List of orders can be filtered, ordered, and paginated.
+* Post: Converts all cart items of the user into an order and empties their cart. Only users have access to this functionality
+#### /api/orders/{orderId}
+* Delete: Deletes a specific order of the user.
+* Put:
+* Patch

@@ -6,26 +6,27 @@ from django.urls import reverse
 from LittleLemonAPI.serializers import UserSerializer
 
 class UserTestCase(APITestCase):
-    def setUp(self):
-        self.super_user = User.objects.create_superuser(
+    @classmethod
+    def setUpTestData(cls):
+        cls.super_user = User.objects.create_superuser(
             username='SuperUser', 
             password='SuperUser@123!'
         )
-        self.delivery_user = User.objects.create_user(
+        cls.delivery_user = User.objects.create_user(
             username='DeliveryUser', 
             password='DeliveryUser@123!'
         )
         group, created = Group.objects.get_or_create(name='Delivery Crew')
-        self.delivery_user.groups.add(group)
+        cls.delivery_user.groups.add(group)
 
-        self.manager_user = User.objects.create_user(
+        cls.manager_user = User.objects.create_user(
             username='ManagerUser', 
             password='ManagerUser@123!'
         )
         group, created = Group.objects.get_or_create(name='Manager')
-        self.manager_user.groups.add(group)
+        cls.manager_user.groups.add(group)
 
-        self.customer_user = User.objects.create_user(
+        cls.customer_user = User.objects.create_user(
             username='CustomerUser', 
             password='CustomerUser@123!'
         )

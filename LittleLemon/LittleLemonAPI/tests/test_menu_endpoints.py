@@ -7,40 +7,41 @@ from LittleLemonAPI.models import MenuItem
 from LittleLemonAPI.serializers import MenuItemSerializer
 
 class MenuTestCase(APITestCase):
-    def setUp(self):
-        self.super_user = User.objects.create_superuser(
+    @classmethod
+    def setUpTestData(cls):
+        cls.super_user = User.objects.create_superuser(
             username='SuperUser', 
             password='SuperUser@123!'
         )
-        self.customer_user = User.objects.create_user(
+        cls.customer_user = User.objects.create_user(
             username='CustomerUser', 
             password='CustomerUser@123!'
         )
-        self.manager_user = User.objects.create_user(
+        cls.manager_user = User.objects.create_user(
             username='ManagerUser', 
             password='ManagerUser@123!'
         )
         group, created = Group.objects.get_or_create(name='Manager')
-        self.manager_user.groups.add(group)
+        cls.manager_user.groups.add(group)
         
-        self.category = Category.objects.create(
+        cls.category = Category.objects.create(
             slug = 'category1',
             title = 'Category1'
         )
-        self.menu1 = MenuItem.objects.create(
+        cls.menu1 = MenuItem.objects.create(
             title = 'Dish1',
             price = 10.00,
-            category = self.category
+            category = cls.category
         )
-        self.menu2 = MenuItem.objects.create(
+        cls.menu2 = MenuItem.objects.create(
             title = 'Dish2',
             price = 20.00,
             featured = True,
-            category = self.category
+            category = cls.category
         )
     
     def test_auth_list_menu(self):
-        response = self.client.get(reverse('menuitem-list'))
+        response = self.client.get(reverse('menu-list'))
         self.assertEqual(response.status_code, 401)
 
     def test_list_menu(self):
@@ -50,7 +51,7 @@ class MenuTestCase(APITestCase):
         )
 
         serializer = MenuItemSerializer(MenuItem.objects.all(), many=True)
-        response = self.client.get(reverse('menuitem-list'))
+        response = self.client.get(reverse('menu-list'))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['results'], serializer.data)
@@ -62,7 +63,7 @@ class MenuTestCase(APITestCase):
         )
 
         serializer = MenuItemSerializer(self.menu1)
-        response = self.client.get(reverse('menuitem-detail', kwargs={'pk': self.menu1.pk}))
+        response = self.client.get(reverse('menu-detail', kwargs={'pk': self.menu1.pk}))
         
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, serializer.data)
@@ -79,7 +80,7 @@ class MenuTestCase(APITestCase):
             'category_id' : self.category.id
         }
         response = self.client.post(
-            reverse('menuitem-list'), 
+            reverse('menu-list'), 
             data=payload, 
             format='json'
         )
@@ -97,7 +98,7 @@ class MenuTestCase(APITestCase):
             'category_id' : self.category.id
         }
         response = self.client.post(
-            reverse('menuitem-list'), 
+            reverse('menu-list'), 
             data=payload, 
             format='json'
         )
@@ -116,8 +117,8 @@ class MenuTestCase(APITestCase):
         )
 
         serializer = MenuItemSerializer(self.menu1)
-        response = self.client.get(reverse('menuitem-list'), {'price__lte': 10.00})
-       
+        response = self.client.get(reverse('menu-list'), {'price__lte': 10.00})
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0], serializer.data)
@@ -131,7 +132,7 @@ class MenuTestCase(APITestCase):
         serializer1 = MenuItemSerializer(self.menu1)
         serializer2 = MenuItemSerializer(self.menu2)
 
-        response = self.client.get(reverse('menuitem-list'), {'ordering':'-title'})
+        response = self.client.get(reverse('menu-list'), {'ordering':'-title'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['results'][0], serializer2.data)
         self.assertEqual(response.data['results'][1], serializer1.data)
@@ -143,7 +144,7 @@ class MenuTestCase(APITestCase):
         )
 
         serializer = MenuItemSerializer(self.menu2)
-        response = self.client.get(reverse('menuitem-list'), {'page_size':'1', 'page': 2})
+        response = self.client.get(reverse('menu-list'), {'page_size':'1', 'page': 2})
         
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 1)
@@ -161,7 +162,7 @@ class MenuTestCase(APITestCase):
             'category_id' : self.category.id
         }
         response = self.client.put(
-            reverse('menuitem-detail',
+            reverse('menu-detail',
             kwargs={'pk': self.menu1.pk}), 
             data=payload, format='json'
         )
@@ -182,7 +183,7 @@ class MenuTestCase(APITestCase):
             'title' : 'Dish11',
         }
         response = self.client.patch(
-            reverse('menuitem-detail',
+            reverse('menu-detail',
             kwargs={'pk': self.menu1.pk}), 
             data=payload, format='json'
         )
@@ -200,7 +201,7 @@ class MenuTestCase(APITestCase):
             password='ManagerUser@123!'
         )
         response = self.client.delete(
-            reverse('menuitem-detail',
+            reverse('menu-detail',
             kwargs={'pk': self.menu1.pk})
         )
         self.assertEqual(response.status_code, 204)

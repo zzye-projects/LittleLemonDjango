@@ -7,32 +7,33 @@ from LittleLemonAPI.models import Cart
 from LittleLemonAPI.serializers import CartSerializer
 
 class MenuTestCase(APITestCase):
-    def setUp(self):
-        self.super_user = User.objects.create_superuser(
+    @classmethod
+    def setUpTestData(cls):
+        cls.super_user = User.objects.create_superuser(
             username='SuperUser', 
             password='SuperUser@123!'
         )
-        self.customer_user = User.objects.create_user(
+        cls.customer_user = User.objects.create_user(
             username='CustomerUser', 
             password='CustomerUser@123!'
         )
-        self.category = Category.objects.create(
+        cls.category = Category.objects.create(
             slug = 'category1',
             title = 'Category1'
         )
-        self.menu1 = MenuItem.objects.create(
+        cls.menu1 = MenuItem.objects.create(
             title = 'Dish1',
             price = 11.00,
-            category = self.category
+            category = cls.category
         )
-        self.menu2 = MenuItem.objects.create(
+        cls.menu2 = MenuItem.objects.create(
             title = 'Dish2',
             price = 22.00,
-            category = self.category
+            category = cls.category
         )
-        self.cart1 = Cart.objects.create(
-            user = self.customer_user,
-            menuitem = self.menu1,
+        cls.cart1 = Cart.objects.create(
+            user = cls.customer_user,
+            menuitem = cls.menu1,
             quantity = 10
         )
         

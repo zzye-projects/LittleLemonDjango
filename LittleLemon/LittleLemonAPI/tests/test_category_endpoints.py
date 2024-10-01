@@ -7,27 +7,28 @@ from LittleLemonAPI.models import Category
 from LittleLemonAPI.serializers import CategorySerializer
 
 class CategoryTestCase(APITestCase):
-    def setUp(self):
-        self.super_user = User.objects.create_superuser(
+    @classmethod
+    def setUpTestData(cls):
+        cls.super_user = User.objects.create_superuser(
             username='SuperUser', 
             password='SuperUser@123!'
         )
-        self.customer_user = User.objects.create_user(
+        cls.customer_user = User.objects.create_user(
             username='CustomerUser', 
             password='CustomerUser@123!'
         )
-        self.manager_user = User.objects.create_user(
+        cls.manager_user = User.objects.create_user(
             username='ManagerUser', 
             password='ManagerUser@123!'
         )
         group, created = Group.objects.get_or_create(name='Manager')
-        self.manager_user.groups.add(group)
+        cls.manager_user.groups.add(group)
         
-        self.category1 = Category.objects.create(
+        cls.category1 = Category.objects.create(
             slug = 'category1',
             title = 'Category1'
         )
-        self.category2 = Category.objects.create(
+        cls.category2 = Category.objects.create(
             slug = 'category2',
             title = 'Category2'
         )

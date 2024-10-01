@@ -29,6 +29,13 @@ class IsCustomerOr403(BasePermission):
             raise PermissionDenied(detail='Only customers can perform this action')
         return True
 
+class IsCustomerOrGET(BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (request.method == 'GET' or
+            not request.user.groups.first()):
+            return True
+        raise PermissionDenied(detail='You are not authorised to perform this action')
+
 class SingleOrderPermissions(BasePermission):
     def has_permission(self, request, view):
         if request.user.is_authenticated and (
@@ -39,10 +46,5 @@ class SingleOrderPermissions(BasePermission):
             return True
         raise PermissionDenied(detail='You are not authorised to perform this action')
 
-class IsCustomerOrGET(BasePermission):
-    def has_permission(self, request, view):
-        if request.user.is_authenticated and (request.method == 'GET' or
-            not request.user.groups.first()):
-            return True
-        raise PermissionDenied(detail='You are not authorised to perform this action')
+
 
