@@ -94,7 +94,7 @@ class OrderTestCase(APITestCase):
         
     def test_auth_list_order(self):
         response = self.client.get(reverse('order-list'))
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
     def test_customer_list_order(self):
         self.client.login(
@@ -205,9 +205,60 @@ class OrderTestCase(APITestCase):
 
         order = get_object_or_404(Order, id = self.order1.id)
         self.assertEqual(order.total, 10 * 11.00 + 20 * 22.00 + 30 * 33.00)
+        self.assertEqual(len(OrderItem.objects.filter(order=order)), 3)
         
-        # serializer2 = OrderItemSerializer(get_object_or_404(OrderItem, id=))
+        order_item2 = get_object_or_404(
+            OrderItem,
+            order = order,
+            menuitem = self.menu2
+        )
+        self.assertEqual(order_item2.quantity, 20)
+        self.assertEqual(order_item2.price, 20 * 22.00)
 
-        self.assertEqual(len(OrderItem.objects.filter(user__id = self.customer1.id)), 3)
+        order_item3 = get_object_or_404(
+            OrderItem,
+            order = order,
+            menuitem = self.menu3
+        )
+        self.assertEqual(order_item3.quantity, 30)
+        self.assertEqual(order_item3.price, 30 * 33.00)
 
-# * Post: Converts all cart items of the user into an order and empties their cart.
+        self.assertEqual(len(Cart.objects.filter(user=self.customer1)), 0)
+
+    def test_customer_get_order(self):
+        print('test customer')
+
+        self.client.login(
+            username='Customer1', 
+            password='Customer1@123!'
+        )
+        response = self.client.get(reverse('order-detail', kwargs={'pk':self.order1.pk}))
+        self.assertEqual(response.status_code, 200)
+
+        serializer = OrderSerializer(self.order1)
+        self.assertEqual(response.data, serializer.data)
+        
+    def test_manager_get_order(self):
+        print('test manager')
+        self.client.login(
+            username='ManagerUser', 
+            password='ManagerUser@123!'
+        )
+        response = self.client.get(reverse('order-detail', kwargs={'pk':self.order2.pk}))
+        self.assertEqual(response.status_code, 200)
+
+        serializer = OrderSerializer(self.order2)
+        self.assertEqual(response.data, serializer.data)
+
+    def test_delivery_get_order(self):
+        print('test delivery')
+        self.client.login(
+            username='DeliveryUser', 
+            password='DeliveryUser@123!'
+        )
+
+        response = self.client.get(reverse('order-detail', kwargs={'pk': self.order1.pk}))
+        self.assertEqual(response.status_code, 200)
+
+        serializer = OrderSerializer(self.order1)
+        self.assertEqual(response.data, serializer.data)

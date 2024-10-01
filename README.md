@@ -25,7 +25,6 @@ Only available to authenticated superusers/admin.
 * Get: Gets list of all manager users.
 * Post: Adds user to manager group. Required payload field(s): username.
 #### /api/groups/manager/users/{userId}
-* Auth: Only available to authenticated superusers/admin.
 * Delete: Removes user from the manager group.
 
 #### /api/groups/delivery-crew/users
@@ -40,7 +39,8 @@ Get is available to any authenticated user. The other methods are only available
 #### User/api/category
 * Get: Gets list of all categories.
 * Post: Adds new category. Required payload field(s): slug, title.
-#### /api/category{categoryId}
+#### /api/category/{categoryId}
+* Get: Gets the single category.
 * Delete: Removes category.
 * Put: Replaces category. Required payload field(s): slug, title.
 * Patch: Updates category. Optional payload field(s): slug, title.
@@ -50,13 +50,14 @@ Get is available to any authenticated user. The other methods are only available
 #### /api/menu-item
 * Get: Gets list of all menu items.
 * Post: Adds new menu item. Required payload field(s): title, price, featured (bool), category_id.
-#### /api/menu-item{categoryId}
+#### /api/menu-item/{menuItemId}
+* Get: Gets the single menu-item.
 * Delete: Removes category.
 * Put: Replaces category. Required payload field(s): title, price, featured (bool), category_id.
 * Patch: Updates category. Optional payload field(s): title, price, featured (bool), category_id.
 
 ### Cart Endpoints
-Get is available to any authenticated customer user, NOT belonging to the manager nor the deliver crew group.
+Available to any authenticated customer user, NOT belonging to the manager nor the deliver crew group.
 #### /api/cart/menu-item
 * Get: Gets list of menu items within the cart of the user.
 * Post: Adds the menu item to a new/existing cart of the user. Required payload field(s): menuitem_id. User can call this endpoint multiple times to increase the quantity of this item in the cart.
@@ -68,6 +69,7 @@ Get is available to any authenticated customer user, NOT belonging to the manage
 * Get: Gets list of orders. Managers get all orders, and customers and delivery crew only get orders that belong/assigned to them. List of orders can be filtered, ordered, and paginated.
 * Post: Converts all cart items of the user into an order and empties their cart. Only users have access to this functionality
 #### /api/orders/{orderId}
+* * Get: Gets an order. Managers get all orders, and customers and delivery crew only get orders that belong/assigned to them.
 * Delete: Deletes a specific order of the user.
 * Put:
 * Patch

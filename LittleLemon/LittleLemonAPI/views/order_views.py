@@ -5,10 +5,9 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from ..serializers import OrderSerializer
 from ..models import Cart, Order, OrderItem
-from ..permissions import IsCustomerOrGET, SingleOrderPermissions
 from rest_framework.exceptions import ValidationError
 from ..helpers import CustomPageSize
-from django.core.paginator import EmptyPage
+from ..permissions import OrderPermissions
 from django.utils import timezone
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
@@ -29,11 +28,10 @@ def update_delivery_crew(order, delivery_crew_id):
     order.save()
 
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    permission_classes = [IsCustomerOrGET]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     pagination_class = CustomPageSize
+    permission_classes = [OrderPermissions]
 
     filterset_fields = {
         'user__id': ['exact'],  
@@ -47,13 +45,12 @@ class OrderViewSet(viewsets.ModelViewSet):
     ordering = ['user__id'] 
 
     def get_queryset(self):
-        user = self.request.user
-        user_groups = user.groups.all()
-        if not user_groups:
+        user, user_groups = self.request.user, self.request.user.groups
+        if not user_groups.first():
             return Order.objects.filter(user=user)
-        elif user_groups.filter(name='Manager'):
+        elif user_groups.filter(name='Manager').exists():
             return Order.objects.all()
-        elif user_groups.filter(name='Delivery Crew'):
+        elif user_groups.filter(name='Delivery Crew').exists():
             return Order.objects.filter(delivery_crew=user)
         return []
     
@@ -64,10 +61,9 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Your cart is empty. No orders to be submitted'}, \
                             status=status.HTTP_204_NO_CONTENT)
         
-        order = Order.objects.create(
-            user=user,
-            date=timezone.now().date()
-        )
+        order, created = Order.objects.get_or_create(user=user)
+        if not order.date: order.date=timezone.now().date()
+
         for cart in carts:
             order_item = OrderItem.objects.create(
                 order = order,
@@ -82,78 +78,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             order.save()
         serializer = OrderSerializer(order)
         return Response( serializer.data, status=status.HTTP_200_OK )
-    
-        
-# class OrderView(APIView):
-#     permission_classes = [IsCustomerOrGET]
-
-#     def get(self, request):
-#         order = get_role_orders(request.user)    
-
-#         # Filter orders
-#         filter_params = {'user_id': 'user__id', 
-#                     'delivery_crew': 'delivery_crew__id',
-#                     'status' : 'status', 
-#                     'to_total': 'total__lte', 
-#                     'to_date':'date__lte',
-#                     }
-#         order = get_filtered_items(order, request, filter_params)
-
-#         if order:
-#             # Order menu-items
-#             order_params = request.query_params.get('ordering')
-#             if order_params: order = order.order_by(*order_params.split(','))
-
-#             # Apply pagination
-#             try:
-#                 order = get_paginated_items(order, request)
-#             except EmptyPage:
-#                 return Response({'message':'Invalid page'}, status=status.HTTP_404_NOT_FOUND)
-
-#             serializer = OrderSerializer(order, many=True)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         return Response({'message':'No orders found'}, status=status.HTTP_404_NOT_FOUND)
-    
-#     def post(self, request):
-#         user = request.user
-#         carts = Cart.objects.filter(user=user)
-#         if not len(carts): 
-#             return Response({'message': 'Your cart is empty. No orders to be submitted'}, \
-#                             status=status.HTTP_204_NO_CONTENT)
-        
-#         order = Order.objects.create(
-#             user=user,
-#             date=timezone.now().date()
-#         )
-#         for cart in carts:
-#             order_item = OrderItem.objects.create(
-#                 order = order,
-#                 menuitem = cart.menuitem,
-#                 quantity = cart.quantity,
-#                 unit_price = cart.unit_price,
-#                 price = cart.price
-#             )
-#             order_item.save()
-#             cart.delete()
-#             order.total += order_item.price
-#             order.save()
-
-#         return Response(
-#             {'message': f'Cart items (total: {order.total}) added to order for user {user}.'},
-#             status=status.HTTP_200_OK
-#     )
         
 # class SingleOrderView(APIView):
-#     permission_classes = [SingleOrderPermissions]
-
-#     def get(self, request, pk):
-#         order = get_role_orders(request.user).filter(pk=pk) 
-#         if order:
-#             serializer = OrderSerializer(order, many=True)
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#         else:
-#             return Response({'message':'Order not found'.format(request.user)}, \
-#                             status=status.HTTP_404_NOT_FOUND) 
         
 #     def put(self, request, pk):
 #         order = get_object_or_404(Order, pk=pk)
