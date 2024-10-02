@@ -36,5 +36,5 @@ class CartView(APIView):
     def delete(self, request):
         carts = Cart.objects.filter(user__username=request.user)
         carts.delete()
-        return Response({f'message': 'Cart emptied for user {request.user}'}, 
+        return Response({'message': f'Cart emptied for user {request.user}'}, 
                         status=status.HTTP_404_NOT_FOUND)

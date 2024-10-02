@@ -1,6 +1,6 @@
 # LittleLemonDjango
 ## Description
-TBD
+This Django API project enables users to manage menu items, categories, carts, and orders, including the creation of orders from cart items. It supports role-based access for customers, managers, and delivery crew, with tailored endpoints for managing user authentication and group assignments. The API streamlines the process of ordering and delivering menu items while ensuring secure and efficient role-specific functionality.
 
 ## Setup Details
 * Navigate into the project folder
@@ -37,7 +37,7 @@ Only available to authenticated superusers/admin/managers.
 ### Category Endpoints
 Get is available to any authenticated user. The other methods are only available to authenticated superusers/admin.
 #### User/api/category
-* Get: Gets list of all categories.
+* Get: Gets list of all categories. List can be filtered, ordered, and paginated.
 * Post: Adds new category. Required payload field(s): slug, title.
 #### /api/category/{categoryId}
 * Get: Gets the single category.
@@ -48,7 +48,7 @@ Get is available to any authenticated user. The other methods are only available
 ### Menu Item Endpoints
 Get is available to any authenticated user. The other methods are only available to authenticated superusers/admin/managers.
 #### /api/menu-item
-* Get: Gets list of all menu items.
+* Get: Gets list of all menu items. List can be filtered, ordered, and paginated.
 * Post: Adds new menu item. Required payload field(s): title, price, featured (bool), category_id.
 #### /api/menu-item/{menuItemId}
 * Get: Gets the single menu-item.
@@ -67,7 +67,7 @@ Available to any authenticated customer user, NOT belonging to the manager nor t
 ### Order Endpoints
 #### /api/orders
 * Get: Gets list of orders. Managers get all orders, and customers and delivery crew only get orders that belong/assigned to them. List of orders can be filtered, ordered, and paginated.
-* Post: Converts all cart items of the user into an order and empties their cart. Only users have access to this functionality
+* Post: Converts all cart items of the user into an order and empties their cart. Only users have access to this functionality.
 #### /api/orders/{orderId}
 * Get: Gets a single order. Managers can access all orders, and customers and delivery crew only access orders that belong/assigned to them.
 * Delete: Deletes a specific order of the user. Only managers can perform this action
