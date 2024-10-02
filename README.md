@@ -1,6 +1,6 @@
 # LittleLemonDjango
 ## Description
-This Django API project enables users to manage menu items, categories, carts, and orders, including the creation of orders from cart items. It supports role-based access for customers, managers, and delivery crew, with tailored endpoints for managing user authentication and group assignments. The API streamlines the process of ordering and delivering menu items while ensuring secure and efficient role-specific functionality.
+This Food Ordering API project enables users to manage restaurant menu items, categories, carts, and orders. It supports role-based access for customers, managers, and delivery crew, with tailored endpoints for managing user authentication and group assignments. 
 
 ## Setup Details
 * Navigate into the project folder
