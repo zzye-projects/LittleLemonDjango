@@ -5,7 +5,6 @@ from ..models import MenuItem
 from ..permissions import IsManagerAdminOrGET
 from ..helpers import CustomPageSize
 
-
 class MenuViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.select_related('category').all()
     serializer_class = MenuItemSerializer

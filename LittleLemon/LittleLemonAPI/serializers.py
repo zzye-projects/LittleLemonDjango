@@ -21,22 +21,28 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class MenuItemSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
-    category_id = serializers.IntegerField(write_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source='category',
+        write_only=True)
     
     class Meta:
         model = MenuItem
         fields = ['id', 'title', 'price', 'featured', 'category', 'category_id']
 
 class CartSerializer(serializers.ModelSerializer):
-    user = serializers.IntegerField(source='user.id', read_only=True)
-    menuitem = serializers.IntegerField(source='menuitem.id', read_only=True)
-
-    user_id = serializers.IntegerField(write_only=True)
-    menuitem_id = serializers.IntegerField(write_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(groups=None),
+        source='user'
+    )
+    menuitem_id = serializers.PrimaryKeyRelatedField(
+        queryset=MenuItem.objects.all(),
+        source='menuitem'
+    )
 
     class Meta:
         model = Cart
-        fields = ['user', 'menuitem', 'quantity', 'unit_price','price', 'user_id', 'menuitem_id']
+        fields = ['user_id', 'menuitem_id', 'quantity', 'unit_price','price']
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,11 +50,15 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class OrderSerializer(serializers.ModelSerializer):
-    order_id = serializers.IntegerField(source='id')
-    order_items = OrderItemSerializer(many=True, read_only=True)
-    user_id = serializers.IntegerField(source='user.id')
-    delivery_crew_id = serializers.PrimaryKeyRelatedField(queryset='delivery_set')
-
+    order_id = serializers.IntegerField(source='id', read_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.filter(groups=None),
+        source='user')
+    order_items = OrderItemSerializer(many=True)
+    delivery_crew_id = serializers.PrimaryKeyRelatedField(
+        source='delivery_crew',
+        queryset=User.objects.filter(groups__name='Delivery Crew'))
+    
     class Meta:
         model = Order
         fields = ['order_id', 'user_id', 'delivery_crew_id', 'status', \

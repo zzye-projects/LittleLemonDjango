@@ -4,8 +4,9 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
 from LittleLemonAPI.models import Order, OrderItem
-from LittleLemonAPI.serializers import OrderSerializer, OrderItemSerializer
+from LittleLemonAPI.serializers import OrderSerializer
 from datetime import timedelta
+from django.utils import timezone
 
 class OrderTestCase(APITestCase):
     @classmethod
@@ -57,9 +58,8 @@ class OrderTestCase(APITestCase):
         cls.timezone_date = timezone.now().date()
         cls.order1 = Order.objects.create(
             user = cls.customer1,
-            delivery_crew = cls.delivery_user,
             total = 10 * 11.00,
-            date = timezone.now().date()
+            date = timezone.now().date() + timedelta(days=1)
         )
         cls.order_item1 = OrderItem.objects.create(
             order = cls.order1,
@@ -81,8 +81,9 @@ class OrderTestCase(APITestCase):
         # Setup cart and orders for customer2
         cls.order2 = Order.objects.create(
             user = cls.customer2,
+            delivery_crew = cls.delivery_user,
             total = 20 * 22.00,
-            date = timezone.now().date()
+            date = timezone.now().date() + timedelta(days=2)
         )
         cls.order_item2 = OrderItem.objects.create(
             order = cls.order2,
@@ -130,7 +131,7 @@ class OrderTestCase(APITestCase):
         response = self.client.get(reverse('order-list'))
         self.assertEqual(response.status_code, 200)
 
-        serializer = OrderSerializer(self.order1)
+        serializer = OrderSerializer(self.order2)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0], serializer.data)
 
@@ -143,7 +144,7 @@ class OrderTestCase(APITestCase):
                                    {'delivery_crew__id':self.delivery_user.pk})
         self.assertEqual(response.status_code, 200)
 
-        serializer = OrderSerializer(self.order1)
+        serializer = OrderSerializer(self.order2)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0], serializer.data)
 
@@ -153,7 +154,7 @@ class OrderTestCase(APITestCase):
             password='ManagerUser@123!'
         )
         response = self.client.get(reverse('order-list'), 
-                                   {'date__gte': self.timezone_date + timedelta(days=1) })
+                                   {'date__gte': self.timezone_date + timedelta(days=3) })
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 0)
 
@@ -226,8 +227,6 @@ class OrderTestCase(APITestCase):
         self.assertEqual(len(Cart.objects.filter(user=self.customer1)), 0)
 
     def test_customer_get_order(self):
-        print('test customer')
-
         self.client.login(
             username='Customer1', 
             password='Customer1@123!'
@@ -239,7 +238,6 @@ class OrderTestCase(APITestCase):
         self.assertEqual(response.data, serializer.data)
         
     def test_manager_get_order(self):
-        print('test manager')
         self.client.login(
             username='ManagerUser', 
             password='ManagerUser@123!'
@@ -251,14 +249,65 @@ class OrderTestCase(APITestCase):
         self.assertEqual(response.data, serializer.data)
 
     def test_delivery_get_order(self):
-        print('test delivery')
         self.client.login(
             username='DeliveryUser', 
             password='DeliveryUser@123!'
         )
 
-        response = self.client.get(reverse('order-detail', kwargs={'pk': self.order1.pk}))
+        response = self.client.get(reverse('order-detail', kwargs={'pk': self.order2.pk}))
         self.assertEqual(response.status_code, 200)
 
-        serializer = OrderSerializer(self.order1)
+        serializer = OrderSerializer(self.order2)
         self.assertEqual(response.data, serializer.data)
+    
+    def test_delete_order(self):
+        self.client.login(
+            username='ManagerUser', 
+            password='ManagerUser@123!'
+        )
+        response = self.client.delete(reverse('order-detail', kwargs={'pk':self.order2.pk}))
+        self.assertEqual(response.status_code, 204)
+
+        self.assertEqual(len(Order.objects.all()), 1)
+        self.assertEqual(len(Order.objects.filter(user=self.customer2)), 0)
+        self.assertEqual(len(OrderItem.objects.filter(order=self.order2)), 0)
+    
+    def test_put_order(self):
+        self.client.login(
+            username='ManagerUser', 
+            password='ManagerUser@123!'
+        )
+        new_date = self.order1.date + timedelta(days=3)
+        payload = {
+            'delivery_crew_id': self.delivery_user.pk,
+            'status': 1,
+            'date': new_date        
+        }
+        response = self.client.put(reverse('order-detail', kwargs={'pk': self.order1.pk}), 
+                                      data=payload, format='json')
+        updated_order = get_object_or_404(Order, pk = self.order1.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(updated_order.delivery_crew, self.delivery_user)
+        self.assertEqual(updated_order.status, 1)
+        self.assertEqual(updated_order.date, new_date)
+
+    def test_patch_order(self):
+        self.client.login(
+            username='DeliveryUser', 
+            password='DeliveryUser@123!'
+        )
+        payload = {
+            'status': 1,
+        }
+        response = self.client.patch(reverse('order-detail', kwargs={'pk': self.order2.pk}), 
+                                      data=payload, format='json')
+        updated_order = get_object_or_404(Order, pk = self.order2.pk)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(updated_order.delivery_crew, self.delivery_user)
+        self.assertEqual(updated_order.status, 1)
+        self.assertEqual(updated_order.date, self.timezone_date + timedelta(days=2))
+
+
+
+
+

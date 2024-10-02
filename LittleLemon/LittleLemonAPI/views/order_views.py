@@ -1,31 +1,11 @@
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth.models import User
+from rest_framework import status, viewsets, filters
 from ..serializers import OrderSerializer
 from ..models import Cart, Order, OrderItem
-from rest_framework.exceptions import ValidationError
 from ..helpers import CustomPageSize
 from ..permissions import OrderPermissions
 from django.utils import timezone
-from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
-        
-def update_status(order, status_code):
-    if status_code in (0, 1): 
-        order.status=status_code
-        order.save()
-    raise ValidationError('Invalid status code')   
-     
-def update_delivery_crew(order, delivery_crew_id):
-    delivery_crew = User.objects \
-        .filter(pk=delivery_crew_id, groups__name='Delivery Crew') \
-        .first()
-    if delivery_crew_id and not delivery_crew:
-        raise ValidationError('Invalid user id for the delivery crew')
-    elif delivery_crew_id: order.delivery_crew=delivery_crew
-    order.save()
 
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
@@ -76,23 +56,33 @@ class OrderViewSet(viewsets.ModelViewSet):
             cart.delete()
             order.total += order_item.price
             order.save()
-        serializer = OrderSerializer(order)
+        serializer = self.get_serializer(order)
         return Response( serializer.data, status=status.HTTP_200_OK )
         
-# class SingleOrderView(APIView):
-        
-#     def put(self, request, pk):
-#         order = get_object_or_404(Order, pk=pk)
-#         update_status(order, int(request.data.get('status')))
-#         update_delivery_crew(order, request.data.get('delivery_crew_id'))
-#         return Response({'message': 'Order updated'}, status=status.HTTP_200_OK)
-    
-#     def patch(self, request, pk):
-#         order = get_object_or_404(Order, pk=pk)
-#         update_status(order, int(request.data.get('status')))
-#         return Response({'message': 'Order updated'}, status=status.HTTP_200_OK)
+    def update(self, request, *args, **kwargs):
+        return self.custom_update(
+            request, 
+            allow_fields = {'delivery_crew_id', 'status', 'date'}, 
+            partial=True
+        )
 
-#     def delete(self, request, pk):
-#         order = Order.objects.filter(pk=pk) 
-#         order.delete()
-#         return Response({'message': 'Order deleted'}, status=status.HTTP_200_OK)
+    def partial_update(self, request, *args, **kwargs):
+        allow_fields = {}
+        if request.user.groups.filter(name='Manager').exists(): 
+            allow_fields = {'delivery_crew_id', 'status', 'date'}
+        elif request.user.groups.filter(name='Delivery Crew'): 
+            allow_fields = {'status'}
+        
+        return self.custom_update( request, allow_fields, partial=True)
+
+    def custom_update(self, request, allow_fields, partial):
+        fields = list(request.data.keys())
+        [request.data.pop(field) for field in fields if field not in allow_fields]
+
+        order = self.get_object()
+        serializer = self.get_serializer(order, data=request.data, partial=partial)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)

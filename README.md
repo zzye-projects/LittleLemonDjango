@@ -46,14 +46,14 @@ Get is available to any authenticated user. The other methods are only available
 * Patch: Updates category. Optional payload field(s): slug, title.
 
 ### Menu Item Endpoints
-Get is available to any authenticated user. The other methods are only available to authenticated superusers/admin.
+Get is available to any authenticated user. The other methods are only available to authenticated superusers/admin/managers.
 #### /api/menu-item
 * Get: Gets list of all menu items.
 * Post: Adds new menu item. Required payload field(s): title, price, featured (bool), category_id.
 #### /api/menu-item/{menuItemId}
 * Get: Gets the single menu-item.
 * Delete: Removes category.
-* Put: Replaces category. Required payload field(s): title, price, featured (bool), category_id.
+* Put: Replaces menu item. Required payload field(s): title, price, featured (bool), category_id.
 * Patch: Updates category. Optional payload field(s): title, price, featured (bool), category_id.
 
 ### Cart Endpoints
@@ -69,7 +69,7 @@ Available to any authenticated customer user, NOT belonging to the manager nor t
 * Get: Gets list of orders. Managers get all orders, and customers and delivery crew only get orders that belong/assigned to them. List of orders can be filtered, ordered, and paginated.
 * Post: Converts all cart items of the user into an order and empties their cart. Only users have access to this functionality
 #### /api/orders/{orderId}
-* * Get: Gets an order. Managers get all orders, and customers and delivery crew only get orders that belong/assigned to them.
-* Delete: Deletes a specific order of the user.
-* Put:
-* Patch
+* Get: Gets a single order. Managers can access all orders, and customers and delivery crew only access orders that belong/assigned to them.
+* Delete: Deletes a specific order of the user. Only managers can perform this action
+* Put: Updates a single order. Only managers can perform this action. Optional payload field(s): delivery_crew_id, status, and date
+* Patch: Updates a single order. Optional payload field(s): delivery_crew_id, status, and date. Managers can update all the fields in the payload. Delivery crew can only update the status for the order assigned to them.

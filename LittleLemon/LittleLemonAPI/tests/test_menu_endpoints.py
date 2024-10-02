@@ -24,20 +24,24 @@ class MenuTestCase(APITestCase):
         group, created = Group.objects.get_or_create(name='Manager')
         cls.manager_user.groups.add(group)
         
-        cls.category = Category.objects.create(
+        cls.category1 = Category.objects.create(
             slug = 'category1',
             title = 'Category1'
+        )
+        cls.category2 = Category.objects.create(
+            slug = 'category2',
+            title = 'Category2'
         )
         cls.menu1 = MenuItem.objects.create(
             title = 'Dish1',
             price = 10.00,
-            category = cls.category
+            category = cls.category1
         )
         cls.menu2 = MenuItem.objects.create(
             title = 'Dish2',
             price = 20.00,
             featured = True,
-            category = cls.category
+            category = cls.category2
         )
     
     def test_auth_list_menu(self):
@@ -77,7 +81,7 @@ class MenuTestCase(APITestCase):
             'title' : 'Dish3',
             'price' : 30.00,
             'featured' : True,
-            'category_id' : self.category.id
+            'category_id' : self.category1.id
         }
         response = self.client.post(
             reverse('menu-list'), 
@@ -95,7 +99,7 @@ class MenuTestCase(APITestCase):
             'title' : 'Dish3',
             'price' : 30.00,
             'featured' : True,
-            'category_id' : self.category.id
+            'category_id' : self.category1.id
         }
         response = self.client.post(
             reverse('menu-list'), 
@@ -107,7 +111,7 @@ class MenuTestCase(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(menu.price, 30.00)
         self.assertEqual(menu.featured, True)
-        self.assertEqual(menu.category, self.category)
+        self.assertEqual(menu.category, self.category1)
         self.assertEqual(len(MenuItem.objects.all()), 3)
 
     def test_filter_menu(self):
@@ -118,7 +122,7 @@ class MenuTestCase(APITestCase):
 
         serializer = MenuItemSerializer(self.menu1)
         response = self.client.get(reverse('menu-list'), {'price__lte': 10.00})
-
+        
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0], serializer.data)
@@ -159,7 +163,7 @@ class MenuTestCase(APITestCase):
             'title' : 'Dish11',
             'price' : 11.00,
             'featured' : False,
-            'category_id' : self.category.id
+            'category_id' : self.category2.id
         }
         response = self.client.put(
             reverse('menu-detail',
@@ -171,7 +175,7 @@ class MenuTestCase(APITestCase):
         self.assertEqual(menu.title, 'Dish11')
         self.assertEqual(menu.price, 11.00)
         self.assertEqual(menu.featured, False)
-        self.assertEqual(menu.category, self.category)
+        self.assertEqual(menu.category, self.category2)
         self.assertEqual(len(MenuItem.objects.all()), 2)
 
     def test_patch_menu(self):
@@ -180,7 +184,7 @@ class MenuTestCase(APITestCase):
             password='ManagerUser@123!'
         )
         payload = {
-            'title' : 'Dish11',
+            'title' : 'Dish12',
         }
         response = self.client.patch(
             reverse('menu-detail',
@@ -189,10 +193,10 @@ class MenuTestCase(APITestCase):
         )
         menu = get_object_or_404(MenuItem, pk=self.menu1.pk)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(menu.title, 'Dish11')
+        self.assertEqual(menu.title, 'Dish12')
         self.assertEqual(menu.price, 10.00)
         self.assertEqual(menu.featured, False)
-        self.assertEqual(menu.category, self.category)
+        self.assertEqual(menu.category, self.category1)
         self.assertEqual(len(MenuItem.objects.all()), 2)
 
     def test_delete_menu(self):
